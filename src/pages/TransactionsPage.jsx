@@ -55,10 +55,7 @@ const handleAdd = async () => {
     accountName: selectedAccount?.name
   };
 
-  // Default extra account if not selected
-  if (showExtraField && !form.extraAccountId && defaultExtraAccount) {
-    txnData.extraAccountId = defaultExtraAccount.id;
-  }
+ 
 
   await addTransaction(user.uid, txnData);
 
@@ -99,10 +96,11 @@ const handleAdd = async () => {
             select
             fullWidth
             label={extraFieldLabel}       // Label stays visible
-            value={form.extraAccountId || (defaultExtraAccount?.id || "")}
+            value={form.extraAccountId || ""}
             onChange={(e) => setForm({ ...form, extraAccountId: e.target.value })}
             sx={{ mt: 1 }}
           >
+            <MenuItem >None</MenuItem>
             {accounts.map((a) => (
               <MenuItem key={a.id} value={a.id}>{a.name}</MenuItem>
             ))}
