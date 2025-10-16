@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'robots.txt', 'icons/*.png'],
       manifest: {
-        name: 'FinZaar Personal Finance',
-        short_name: 'FinZaar',
-        description: 'FinZaar app to manage personal finance',
+        name: 'FundFlare Personal Finance',
+        short_name: 'FundFlare',
+        description: 'FundFlare app to manage personal finance',
         theme_color: '#1976D2',
         start_url: "/",
         display: "standalone",

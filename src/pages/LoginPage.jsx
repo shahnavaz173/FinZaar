@@ -35,7 +35,7 @@ export default function LoginPage() {
         }}
       >
         <Typography variant="h5" fontWeight="bold" mb={2}>
-          Welcome to FinZaar
+          Welcome to FundFlare
         </Typography>
         <Typography variant="body2" color="text.secondary" mb={3}>
           Sign in to continue managing your finances

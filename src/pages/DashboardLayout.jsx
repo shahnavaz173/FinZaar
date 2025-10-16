@@ -26,8 +26,8 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import finzaarLogo from "../assets/finzaar-logo.png";
-import finzaarLogoWhite from "../assets/finzaar-logo-white.png";
+import finzaarLogo from "../assets/fundflare-logo.png";
+import finzaarLogoWhite from "../assets/fundflare-logo-white.png";
 
 const navItems = [
   { label: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
@@ -82,14 +82,14 @@ export default function DashboardLayout() {
             <Box
               component="img"
               src={finzaarLogoWhite}
-              alt="FinZaar"
+              alt="FundFlare"
               sx={{
                 height: 48, // larger and responsive
                 width: "auto",
                 ml: !isDesktop ? 1 : 2,
               }}
             />
-            <Typography variant="h5">FinZaar</Typography>
+            <Typography variant="h5">FundFlare</Typography>
           </Box>
 
           {user && <Avatar src={user.photoURL} alt={user.displayName} />}
@@ -116,6 +116,7 @@ export default function DashboardLayout() {
             alt="logo"
             sx={{ width: "80%", maxWidth: 140 }}
           />
+          
         </Box>
         <Divider />
         <List>
