@@ -1,0 +1,31 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'robots.txt', 'icons/*.png'],
+      manifest: {
+        name: 'FinZaar Personal Finance',
+        short_name: 'FinZaar',
+        description: 'FinZaar app to manage personal finance',
+        theme_color: '#1976D2',
+        icons: [
+          {
+            src: 'icons/icon-192x192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      }
+    })
+  ]
+});
