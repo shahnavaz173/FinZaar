@@ -13,6 +13,8 @@ export default defineConfig({
         short_name: 'FinZaar',
         description: 'FinZaar app to manage personal finance',
         theme_color: '#1976D2',
+        start_url: "/",
+        display: "standalone",
         icons: [
           {
             src: 'icons/icon-192x192.png',

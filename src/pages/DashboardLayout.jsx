@@ -27,7 +27,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import finzaarLogo from "../assets/finzaar-logo.png";
-import finzaarLogoDark from "../assets/finzaar-logo-only-dark.png";
+import finzaarLogoWhite from "../assets/finzaar-logo-white.png";
 
 const navItems = [
   { label: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
@@ -81,7 +81,7 @@ export default function DashboardLayout() {
             )}
             <Box
               component="img"
-              src={finzaarLogoDark}
+              src={finzaarLogoWhite}
               alt="FinZaar"
               sx={{
                 height: 48, // larger and responsive
@@ -109,12 +109,12 @@ export default function DashboardLayout() {
           },
         }}
       >
-        <Box sx={{ p: 2, textAlign: "center" }}>
+        <Box sx={{ p: 2, textAlign: "left" }}>
           <Box
             component="img"
             src={finzaarLogo}
             alt="logo"
-            sx={{ width: "80%", maxWidth: 140, mb: 2 }}
+            sx={{ width: "80%", maxWidth: 140 }}
           />
         </Box>
         <Divider />
