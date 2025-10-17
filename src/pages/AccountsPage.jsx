@@ -4,25 +4,29 @@ import {
   Typography,
   TextField,
   Button,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
+  Card,
+  CardContent,
   MenuItem,
   Select,
   InputLabel,
   FormControl,
+  Stack,
+  Collapse,
+  IconButton,
+  Paper,
 } from "@mui/material";
+import { ExpandMore, ExpandLess } from "@mui/icons-material";
 import { useAuth } from "../context/AuthContext";
-import { listenToAccounts, addAccount } from "../services/accountService";
-import { useNavigate } from "react-router-dom"; // ✅ add this
+import { listenToAccounts } from "../services/accountService";
+import { useNavigate } from "react-router-dom";
 
 export default function AccountsPage() {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState([]);
-  const [name, setName] = useState("");
-  const [type, setType] = useState("Asset");
-  const navigate = useNavigate(); // ✅ initialize navigation
+  const [searchName, setSearchName] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) return;
@@ -30,57 +34,75 @@ export default function AccountsPage() {
     return () => unsub && unsub();
   }, [user]);
 
-  const handleAdd = async () => {
-    if (!name.trim()) return;
-    await addAccount(user.uid, { name, balance: 0, type, createdAt: new Date() });
-    setName("");
-    setType("Asset");
-  };
+  // Apply filters
+  const filteredAccounts = accounts.filter((a) => {
+    const matchesName = a.name.toLowerCase().includes(searchName.toLowerCase());
+    const matchesType = filterType ? a.type === filterType : true;
+    return matchesName && matchesType;
+  });
 
   return (
-    <Box sx={{
-      pb: { xs: 8, sm: 2 }, // Add padding-bottom on mobile so buttons don't get hidden
-    }}>
-      <Typography variant="h6" mb={2}>Accounts</Typography>
-
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          label="New account name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          fullWidth
-        />
-
-        <FormControl fullWidth sx={{ mt: 2 }}>
-          <InputLabel>Account Type</InputLabel>
-          <Select value={type} onChange={(e) => setType(e.target.value)} label="Account Type">
-            <MenuItem value="Asset">Asset</MenuItem>
-            <MenuItem value="Party">Party</MenuItem>
-            <MenuItem value="Fund">Fund</MenuItem>
-          </Select>
-        </FormControl>
-
-        <Button variant="contained" sx={{ mt: 2 }} onClick={handleAdd}>
+    <Box sx={{ pb: { xs: 8, sm: 2 }, px: { xs: 2, sm: 4 } }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h5">Accounts</Typography>
+        <Button variant="contained" onClick={() => navigate("/dashboard/accounts/add")}>
           Add Account
         </Button>
+      </Stack>
+
+      {/* Filters */}
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="subtitle1">Filters</Typography>
+          <IconButton onClick={() => setShowFilters((prev) => !prev)}>
+            {showFilters ? <ExpandLess /> : <ExpandMore />}
+          </IconButton>
+        </Stack>
+        <Collapse in={showFilters}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mt={2}>
+            <TextField
+              label="Search by name"
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>Account Type</InputLabel>
+              <Select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                label="Account Type"
+              >
+                <MenuItem value="">All</MenuItem>
+                <MenuItem value="Asset">Asset</MenuItem>
+                <MenuItem value="Party">Party</MenuItem>
+                <MenuItem value="Fund">Fund</MenuItem>
+              </Select>
+            </FormControl>
+          </Stack>
+        </Collapse>
       </Paper>
 
-      <List>
-        {accounts.map((a) => (
-          <ListItem
+      {/* Account Cards */}
+      <Stack spacing={2}>
+        {filteredAccounts.length === 0 && (
+          <Typography variant="body2">No accounts found.</Typography>
+        )}
+        {filteredAccounts.map((a) => (
+          <Card
             key={a.id}
-            divider
-            button // ✅ makes it clickable
-            onClick={() => navigate(`/dashboard/accounts/${a.id}`)} // ✅ go to detail page
+            sx={{ cursor: "pointer", transition: "0.2s", "&:hover": { boxShadow: 6 } }}
+            onClick={() => navigate(`/dashboard/accounts/${a.id}`)}
           >
-            <ListItemText
-              primary={a.name}
-              secondary={`Type: ${a.type} | Balance: ₹ ${a.balance ?? 0}`}
-            />
-          </ListItem>
+            <CardContent>
+              <Typography variant="h6">{a.name}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Type: {a.type} | Balance: ₹ {a.balance ?? 0}
+              </Typography>
+            </CardContent>
+          </Card>
         ))}
-        {accounts.length === 0 && <Typography variant="body2">No accounts yet.</Typography>}
-      </List>
+      </Stack>
     </Box>
   );
 }

@@ -8,6 +8,7 @@ import AccountsPage from "./pages/AccountsPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import AccountDetailPage from "./pages/AccountDetailPage";
 import EditTransactionPage from "./pages/EditTransactionPage";
+import AddAccountPage from "./pages/AddAccountPage";
 
 export default function App() {
   const { user } = useAuth();
@@ -27,8 +28,9 @@ export default function App() {
         {/* Nested routes inside dashboard layout */}
         <Route index element={<DashboardHome />} />
         <Route path="accounts" element={<AccountsPage />} />
-        <Route path="transactions" element={<TransactionsPage />} />
         <Route path="accounts/:id" element={<AccountDetailPage />} />
+        <Route path="accounts/add" element={<AddAccountPage />} />
+        <Route path="transactions" element={<TransactionsPage />} />
         <Route path="transactions/edit/:txnId" element={<EditTransactionPage />} />
 
       </Route>
