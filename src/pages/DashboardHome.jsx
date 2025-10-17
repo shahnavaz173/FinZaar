@@ -44,7 +44,9 @@ export default function DashboardHome() {
   ];
 
   return (
-    <Box>
+    <Box sx={{
+      pb: { xs: 8, sm: 2 }, // Add padding-bottom on mobile so buttons don't get hidden
+    }}>
       <Typography variant="h6" gutterBottom>Dashboard</Typography>
 
       {/* Flexbox wrapping cards */}
@@ -79,13 +81,6 @@ export default function DashboardHome() {
 </Box>
 
 
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="subtitle1">Quick Actions</Typography>
-        <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
-          <Button variant="contained">Add Expense</Button>
-          <Button variant="outlined">Add Income</Button>
-        </Box>
-      </Box>
     </Box>
   );
 }

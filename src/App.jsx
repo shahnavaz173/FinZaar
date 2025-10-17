@@ -6,6 +6,7 @@ import DashboardLayout from "./pages/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
 import AccountsPage from "./pages/AccountsPage";
 import TransactionsPage from "./pages/TransactionsPage";
+import AccountDetailPage from "./pages/AccountDetailPage";
 
 export default function App() {
   const { user } = useAuth();
@@ -26,6 +27,8 @@ export default function App() {
         <Route index element={<DashboardHome />} />
         <Route path="accounts" element={<AccountsPage />} />
         <Route path="transactions" element={<TransactionsPage />} />
+        <Route path="accounts/:id" element={<AccountDetailPage />} />
+
       </Route>
 
       {/* fallback */}

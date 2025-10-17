@@ -15,12 +15,14 @@ import {
 } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
 import { listenToAccounts, addAccount } from "../services/accountService";
+import { useNavigate } from "react-router-dom"; // ✅ add this
 
 export default function AccountsPage() {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState([]);
   const [name, setName] = useState("");
-  const [type, setType] = useState("Asset"); // default type
+  const [type, setType] = useState("Asset");
+  const navigate = useNavigate(); // ✅ initialize navigation
 
   useEffect(() => {
     if (!user) return;
@@ -32,11 +34,13 @@ export default function AccountsPage() {
     if (!name.trim()) return;
     await addAccount(user.uid, { name, balance: 0, type, createdAt: new Date() });
     setName("");
-    setType("Asset"); // reset to default
+    setType("Asset");
   };
 
   return (
-    <Box>
+    <Box sx={{
+      pb: { xs: 8, sm: 2 }, // Add padding-bottom on mobile so buttons don't get hidden
+    }}>
       <Typography variant="h6" mb={2}>Accounts</Typography>
 
       <Paper sx={{ p: 2, mb: 2 }}>
@@ -63,7 +67,12 @@ export default function AccountsPage() {
 
       <List>
         {accounts.map((a) => (
-          <ListItem key={a.id} divider>
+          <ListItem
+            key={a.id}
+            divider
+            button // ✅ makes it clickable
+            onClick={() => navigate(`/dashboard/accounts/${a.id}`)} // ✅ go to detail page
+          >
             <ListItemText
               primary={a.name}
               secondary={`Type: ${a.type} | Balance: ₹ ${a.balance ?? 0}`}

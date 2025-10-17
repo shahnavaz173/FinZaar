@@ -64,7 +64,9 @@ const handleAdd = async () => {
 
 
   return (
-    <Box>
+    <Box sx={{
+      pb: { xs: 8, sm: 2 }, // Add padding-bottom on mobile so buttons don't get hidden
+    }}>
       <Typography variant="h6" mb={2}>Transactions</Typography>
 
       <Paper sx={{ p: 2, mb: 2 }}>
