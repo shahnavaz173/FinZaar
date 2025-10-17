@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -14,6 +14,8 @@ import { listenToTransactions } from "../services/transactionService";
 import { useAuth } from "../context/AuthContext";
 
 export default function AccountDetailPage() {
+
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { id } = useParams();
   const [transactions, setTransactions] = useState([]);
@@ -74,9 +76,11 @@ export default function AccountDetailPage() {
   ).sort((a, b) => b - a);
 
   return (
-    <Box sx={{
-      pb: { xs: 8, sm: 2 }, // Add padding-bottom on mobile so buttons don't get hidden
-    }}>
+    <Box
+      sx={{
+        pb: { xs: 8, sm: 2 }, // Add padding-bottom on mobile so buttons don't get hidden
+      }}
+    >
       <Typography variant="h6" gutterBottom>
         Account Transactions
       </Typography>
@@ -98,12 +102,7 @@ export default function AccountDetailPage() {
             Search Transactions
           </Typography>
 
-          {/* Desktop: row layout, Mobile: stacked or 2 per row */}
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            flexWrap="wrap"
-          >
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flexWrap="wrap">
             <TextField
               label="From Date"
               type="date"
@@ -133,9 +132,7 @@ export default function AccountDetailPage() {
               <MenuItem value="">All</MenuItem>
               {months.map((m) => (
                 <MenuItem key={m} value={m}>
-                  {new Date(0, m - 1).toLocaleString("default", {
-                    month: "long",
-                  })}
+                  {new Date(0, m - 1).toLocaleString("default", { month: "long" })}
                 </MenuItem>
               ))}
             </TextField>
@@ -186,13 +183,21 @@ export default function AccountDetailPage() {
                 {t.createdAt?.toDate().toLocaleString()}
               </Typography>
               {t.note && (
-                <Typography
-                  variant="body2"
-                  sx={{ fontStyle: "italic", mt: 0.5 }}
-                >
+                <Typography variant="body2" sx={{ fontStyle: "italic", mt: 0.5 }}>
                   📝 {t.note}
                 </Typography>
               )}
+
+              {/* Edit Button */}
+              <Button
+                variant="outlined"
+                size="small"
+                sx={{ mt: 1 }}
+                onClick={() => navigate(`/dashboard/transactions/edit/${t.id}`)}
+              >
+                Edit
+              </Button>
+              
             </Paper>
           ))}
         </Box>

@@ -100,3 +100,95 @@ export function listenToTransactions(userId, setTransactions) {
   );
   return unsub;
 }
+
+
+// Get a single transaction
+export async function getTransactionById(userId, txnId) {
+  const docRef = doc(db, "users", userId, "transactions", txnId);
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() };
+}
+
+// Update transaction with correct balance adjustments
+export async function updateTransaction(userId, txnId, updatedTxn) {
+  const docRef = doc(db, "users", userId, "transactions", txnId);
+  const oldSnap = await getDoc(docRef);
+  if (!oldSnap.exists()) return;
+
+  const oldTxn = oldSnap.data();
+
+  // --- Revert old transaction from main account ---
+  const mainAccountRef = doc(db, "users", userId, "accounts", oldTxn.accountId);
+  const mainSnap = await getDoc(mainAccountRef);
+  if (mainSnap.exists()) {
+    let balance = mainSnap.data().balance ?? 0;
+    balance -= oldTxn.type === "credit" ? oldTxn.amount : -oldTxn.amount;
+    await updateDoc(mainAccountRef, { balance });
+  }
+
+  // --- Revert old transaction from extra account if exists ---
+  if (oldTxn.extraAccountId) {
+    const extraRef = doc(db, "users", userId, "accounts", oldTxn.extraAccountId);
+    const extraSnap = await getDoc(extraRef);
+    if (extraSnap.exists()) {
+      let extraBalance = extraSnap.data().balance ?? 0;
+      const accountType = oldTxn.accountType?.toLowerCase();
+      const accountName = oldTxn.accountName?.toLowerCase();
+      const txnType = oldTxn.type;
+
+      let updateType = null;
+      if (accountName === "investment") {
+        updateType = txnType === "credit" ? "credit" : "debit";
+      } else if (accountType === "party") {
+        updateType = txnType === "credit" ? "debit" : "credit";
+      } else if (accountType === "fund" && txnType === "credit") {
+        updateType = "credit";
+      }
+
+      if (updateType === "credit") extraBalance += oldTxn.amount;
+      else if (updateType === "debit") extraBalance -= oldTxn.amount;
+
+      await updateDoc(extraRef, { balance: extraBalance });
+    }
+  }
+
+  // --- Apply updated transaction to main account ---
+  const newMainAccountRef = doc(db, "users", userId, "accounts", updatedTxn.accountId);
+  const newMainSnap = await getDoc(newMainAccountRef);
+  if (newMainSnap.exists()) {
+    let balance = newMainSnap.data().balance ?? 0;
+    balance += updatedTxn.type === "credit" ? updatedTxn.amount : -updatedTxn.amount;
+    await updateDoc(newMainAccountRef, { balance });
+  }
+
+  // --- Apply updated transaction to extra account if exists ---
+  if (updatedTxn.extraAccountId) {
+    const extraRef = doc(db, "users", userId, "accounts", updatedTxn.extraAccountId);
+    const extraSnap = await getDoc(extraRef);
+    if (extraSnap.exists()) {
+      let extraBalance = extraSnap.data().balance ?? 0;
+      const accountType = updatedTxn.accountType?.toLowerCase();
+      const accountName = updatedTxn.accountName?.toLowerCase();
+      const txnType = updatedTxn.type;
+
+      let updateType = null;
+
+      if (accountName === "investment") {
+        updateType = txnType === "credit" ? "debit" : "credit";
+      } else if (accountType === "party") {
+        updateType = txnType === "credit" ? "credit" : "debit";
+      } else if (accountType === "fund" && txnType === "credit") {
+        updateType = "debit";
+      }
+
+      if (updateType === "credit") extraBalance += updatedTxn.amount;
+      else if (updateType === "debit") extraBalance -= updatedTxn.amount;
+
+      await updateDoc(extraRef, { balance: extraBalance });
+    }
+  }
+
+  // --- Update the transaction document itself ---
+  await updateDoc(docRef, updatedTxn);
+}
