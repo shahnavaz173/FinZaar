@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "fin-zaar"
-  }
+    "default": "fund-flare",
+    "fundflare": "fund-flare"
+  },
+  "targets": {},
+  "etags": {}
 }
