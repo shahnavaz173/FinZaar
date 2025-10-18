@@ -7,9 +7,12 @@ import {
   Button,
   Collapse,
   TextField,
+  Grid,
+  Chip,
+  Autocomplete,
   MenuItem,
-  Fab,
 } from "@mui/material";
+import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -23,25 +26,28 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [accounts, setAccounts] = useState([]);
-
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filters
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedAccounts, setSelectedAccounts] = useState([]);
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
 
-  // Load transactions
+  const accountTypes = ["Asset", "Party", "Fund"];
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const years = Array.from(
+    new Set(transactions.map((t) => t.createdAt?.toDate().getFullYear()))
+  ).sort((a, b) => b - a);
+
+  // Listen to transactions
   useEffect(() => {
     if (!user) return;
     const unsub = listenToTransactions(user.uid, setTransactions);
     return () => unsub && unsub();
   }, [user]);
 
-  // Load accounts for filter dropdown
+  // Listen to accounts for filters
   useEffect(() => {
     if (!user) return;
     const unsub = listenToAccounts(user.uid, setAccounts);
@@ -62,34 +68,32 @@ export default function TransactionsPage() {
       );
     }
 
-    if (fromDate)
+    if (dateRange.from) {
       filtered = filtered.filter(
-        (t) => t.createdAt?.toDate() >= new Date(fromDate)
+        (t) => t.createdAt && new Date(t.createdAt.toDate()) >= new Date(dateRange.from)
       );
+    }
 
-    if (toDate)
+    if (dateRange.to) {
       filtered = filtered.filter(
-        (t) => t.createdAt?.toDate() <= new Date(toDate)
+        (t) => t.createdAt && new Date(t.createdAt.toDate()) <= new Date(dateRange.to)
       );
+    }
 
-    if (month)
+    if (month) {
       filtered = filtered.filter(
-        (t) => t.createdAt?.toDate().getMonth() + 1 === parseInt(month)
+        (t) => t.createdAt && new Date(t.createdAt.toDate()).getMonth() + 1 === parseInt(month, 10)
       );
+    }
 
-    if (year)
+    if (year) {
       filtered = filtered.filter(
-        (t) => t.createdAt?.toDate().getFullYear() === parseInt(year)
+        (t) => t.createdAt && new Date(t.createdAt.toDate()).getFullYear() === parseInt(year, 10)
       );
+    }
 
     setFilteredTransactions(filtered);
-  }, [transactions, selectedTypes, selectedAccounts, fromDate, toDate, month, year]);
-
-  const accountTypes = ["Asset", "Party", "Fund"];
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const years = Array.from(
-    new Set(transactions.map((t) => t.createdAt?.toDate().getFullYear()))
-  ).sort((a, b) => b - a);
+  }, [transactions, selectedTypes, selectedAccounts, dateRange, month, year]);
 
   return (
     <Box sx={{ p: 3, position: "relative", minHeight: "100vh" }}>
@@ -97,7 +101,7 @@ export default function TransactionsPage() {
         Transactions
       </Typography>
 
-      {/* Filter Collapse */}
+      {/* Filter Panel */}
       <Paper sx={{ p: 2, mb: 2 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="subtitle1">Filters</Typography>
@@ -106,144 +110,137 @@ export default function TransactionsPage() {
           </Button>
         </Box>
         <Collapse in={showFilters}>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mt={2} flexWrap="wrap">
-            <TextField
-              select
-              label="Account Type"
+          <Stack spacing={2} mt={2}>
+            <Autocomplete
+              multiple
+              options={accountTypes}
               value={selectedTypes}
-              onChange={(e) => setSelectedTypes([e.target.value])}
-              size="small"
-              sx={{ flex: 1, minWidth: 120 }}
-            >
-              <MenuItem value="">All</MenuItem>
-              {accountTypes.map((t) => (
-                <MenuItem key={t} value={t}>{t}</MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
-              select
-              label="Account Name"
+              onChange={(e, newVal) => setSelectedTypes(newVal)}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => <Chip key={option} label={option} {...getTagProps({ index })} />)
+              }
+              renderInput={(params) => <TextField {...params} label="Account Type" InputLabelProps={{ shrink: true }} />}
+            />
+            <Autocomplete
+              multiple
+              options={accounts.map((a) => a.name)}
               value={selectedAccounts}
-              onChange={(e) => setSelectedAccounts([e.target.value])}
-              size="small"
-              sx={{ flex: 1, minWidth: 120 }}
-            >
-              <MenuItem value="">All</MenuItem>
-              {accounts.map((a) => (
-                <MenuItem key={a.id} value={a.name}>{a.name}</MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
-              label="From Date"
-              type="date"
-              size="small"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              sx={{ flex: 1, minWidth: 120 }}
+              onChange={(e, newVal) => setSelectedAccounts(newVal)}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => <Chip key={option} label={option} {...getTagProps({ index })} />)
+              }
+              renderInput={(params) => <TextField {...params} label="Account Name" InputLabelProps={{ shrink: true }} />}
             />
-            <TextField
-              label="To Date"
-              type="date"
-              size="small"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              sx={{ flex: 1, minWidth: 120 }}
-            />
-            <TextField
-              select
-              label="Month"
-              size="small"
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
-              sx={{ flex: 1, minWidth: 120 }}
-            >
-              <MenuItem value="">All</MenuItem>
-              {months.map((m) => (
-                <MenuItem key={m} value={m}>
-                  {new Date(0, m - 1).toLocaleString("default", { month: "long" })}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Year"
-              size="small"
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              sx={{ flex: 1, minWidth: 120 }}
-            >
-              <MenuItem value="">All</MenuItem>
-              {years.map((y) => (
-                <MenuItem key={y} value={y}>{y}</MenuItem>
-              ))}
-            </TextField>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="From Date"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  value={dateRange.from}
+                  onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="To Date"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  value={dateRange.to}
+                  onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={6} sm={2}>
+                <TextField
+                  select
+                  label="Month"
+                  value={month}
+                  onChange={(e) => setMonth(e.target.value)}
+                  sx={{ flex: 1, minWidth: 120 }}
+                  InputLabelProps={{ shrink: true }}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {months.map((m) => (
+                    <MenuItem key={m} value={m}>
+                      {new Date(0, m - 1).toLocaleString("default", { month: "long" })}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={6} sm={2}>
+                <TextField
+                  select
+                  label="Year"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  sx={{ flex: 1, minWidth: 120 }}
+                  InputLabelProps={{ shrink: true }}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {years.map((y) => (
+                    <MenuItem key={y} value={y}>{y}</MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            </Grid>
           </Stack>
         </Collapse>
       </Paper>
 
-      {/* Transaction Cards */}
-      {filteredTransactions.length === 0 ? (
-        <Typography>No transactions found.</Typography>
-      ) : (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-            gap: 2,
-          }}
-        >
-          {filteredTransactions.map((t) => (
-            <Paper
-              key={t.id}
-              sx={{
-                p: 2,
-                borderLeft: `5px solid ${t.type === "credit" ? "green" : "red"}`,
-                borderRadius: 2,
-                boxShadow: 2,
-              }}
-            >
-              {/* Amount + Type + Account Name + Account Type */}
-              <Typography variant="subtitle1" fontWeight="bold">
-                ₹{t.amount} ({t.type}) — {t.accountName || "Unknown"}
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary">
-                {t.createdAt?.toDate().toLocaleString()}
-              </Typography>
-              {t.note && (
-                <Typography variant="body2" sx={{ fontStyle: "italic", mt: 0.5 }}>
-                  📝 {t.note}
-                </Typography>
-              )}
-
-              <Button
-                variant="outlined"
-                size="small"
-                sx={{ mt: 1 }}
-                onClick={() => navigate(`/dashboard/transactions/edit/${t.id}`)}
+      {/* Transactions List */}
+      <Stack spacing={1}>
+        {filteredTransactions.length === 0 ? (
+          <Typography variant="body2">No transactions found.</Typography>
+        ) : (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gap: 2,
+            }}
+          >
+            {filteredTransactions.map((t) => (
+              <Paper
+                key={t.id}
+                sx={{
+                  p: 2,
+                  borderLeft: `5px solid ${t.type === "credit" ? "green" : "red"}`,
+                  borderRadius: 2,
+                  boxShadow: 2,
+                }}
               >
-                Edit
-              </Button>
-            </Paper>
-          ))}
-        </Box>
-      )}
+                <Typography variant="subtitle1" fontWeight="bold">
+                  ₹{t.amount} ({t.type}) — {t.accountName || t.accountId}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t.createdAt?.toDate().toLocaleString()}
+                </Typography>
+                {t.note && (
+                  <Typography variant="body2" sx={{ fontStyle: "italic", mt: 0.5 }}>
+                    📝 {t.note}
+                  </Typography>
+                )}
+                <Button
+                  variant="outlined"
+                  size="small"
+                  sx={{ mt: 1 }}
+                  onClick={() => navigate(`/dashboard/transactions/edit/${t.id}`)}
+                >
+                  Edit
+                </Button>
+              </Paper>
+            ))}
+          </Box>
+        )}
+      </Stack>
 
-      {/* Floating Add Button */}
+      {/* Floating Add Transaction Button */}
       <Fab
         color="primary"
-        aria-label="add"
+        sx={{ position: "fixed", bottom: 70, right: 24 }}
         onClick={() => navigate("/dashboard/transactions/add")}
-        sx={{
-          position: "fixed",
-          bottom: 70,
-          right: 24,
-          boxShadow: "0 6px 10px rgba(0,0,0,0.3)",
-        }}
       >
         <AddIcon />
       </Fab>

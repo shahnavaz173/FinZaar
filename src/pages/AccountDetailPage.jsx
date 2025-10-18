@@ -1,4 +1,3 @@
-import { useParams, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -11,160 +10,84 @@ import {
   MenuItem,
   Fab,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet"
-import SavingsIcon from "@mui/icons-material/Savings";
-import CreditCardIcon from "@mui/icons-material/CreditCard";
-import { listenToTransactions } from "../services/transactionService";
-import { getAccountById } from "../services/accountService";
 import { useAuth } from "../context/AuthContext";
+import { listenToTransactions } from "../services/transactionService";
+import { listenToAccounts } from "../services/accountService";
+import { Edit } from "@mui/icons-material";
 
-export default function AccountDetailPage() {
-  const { id } = useParams(); // Account ID
+export default function TransactionsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [account, setAccount] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+
+  const [showFilters, setShowFilters] = useState(false);
 
   // Filters
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedAccounts, setSelectedAccounts] = useState([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
 
-  // Collapse toggle for mobile filters
-  const [showFilters, setShowFilters] = useState(false);
-
+  // Listen to transactions
   useEffect(() => {
     if (!user) return;
-
-    // Fetch account details
-    getAccountById(user.uid, id).then(setAccount);
-
-    // Listen to all transactions and filter by account ID
-    const unsub = listenToTransactions(user.uid, (allTxns) => {
-      const filtered = allTxns
-        .filter((t) => t.accountId === id)
-        .sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
-      setTransactions(filtered);
-      setFilteredTransactions(filtered);
-    });
-
+    const unsub = listenToTransactions(user.uid, setTransactions);
     return () => unsub && unsub();
-  }, [user, id]);
+  }, [user]);
+
+  // Listen to accounts for filters
+  useEffect(() => {
+    if (!user) return;
+    const unsub = listenToAccounts(user.uid, setAccounts);
+    return () => unsub && unsub();
+  }, [user]);
 
   // Apply filters
   useEffect(() => {
     let filtered = [...transactions];
 
-    if (fromDate)
+    if (selectedTypes.length) {
+      filtered = filtered.filter((t) => selectedTypes.includes(t.accountType));
+    }
+
+    if (selectedAccounts.length) {
       filtered = filtered.filter(
-        (t) => t.createdAt?.toDate() >= new Date(fromDate)
+        (t) => selectedAccounts.includes(t.accountName) || selectedAccounts.includes(t.accountId)
       );
+    }
+
+    if (fromDate)
+      filtered = filtered.filter((t) => t.createdAt?.toDate() >= new Date(fromDate));
 
     if (toDate)
-      filtered = filtered.filter(
-        (t) => t.createdAt?.toDate() <= new Date(toDate)
-      );
+      filtered = filtered.filter((t) => t.createdAt?.toDate() <= new Date(toDate));
 
     if (month)
-      filtered = filtered.filter(
-        (t) => t.createdAt?.toDate().getMonth() + 1 === parseInt(month)
-      );
+      filtered = filtered.filter((t) => t.createdAt?.toDate().getMonth() + 1 === parseInt(month));
 
     if (year)
-      filtered = filtered.filter(
-        (t) => t.createdAt?.toDate().getFullYear() === parseInt(year)
-      );
+      filtered = filtered.filter((t) => t.createdAt?.toDate().getFullYear() === parseInt(year));
 
     setFilteredTransactions(filtered);
-  }, [fromDate, toDate, month, year, transactions]);
+  }, [transactions, selectedTypes, selectedAccounts, fromDate, toDate, month, year]);
 
-  // Helper arrays for filters
+  const accountTypes = ["Asset", "Party", "Fund"];
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const years = Array.from(
-    new Set(transactions.map((t) => t.createdAt?.toDate().getFullYear()))
-  ).sort((a, b) => b - a);
-
-const handleAddTransaction = () => {
-  navigate(`/dashboard/transactions/add/${id}`, { state: { preselectedAccountId: id } });
-};
-
-
-// Choose icon based on account type
-const getAccountIcon = (type) => {
-  switch (type.toLowerCase()) {
-    case "asset":
-      return <AccountBalanceIcon sx={{ fontSize: 40, color: "#388e3c" }} />; // green
-    case "party":
-      return <CreditCardIcon sx={{ fontSize: 40, color: "#f57c00" }} />; // orange
-    case "fund": // Reserved Fund
-      return <AccountBalanceWalletIcon sx={{ fontSize: 40, color: "#1976d2" }} />; // dark blue
-    default:
-      return <AccountBalanceIcon sx={{ fontSize: 40, color: "#6c757d" }} />; // grey fallback
-  }
-};
-
-
+  const years = Array.from(new Set(transactions.map((t) => t.createdAt?.toDate().getFullYear())))
+    .sort((a, b) => b - a);
 
   return (
     <Box sx={{ p: 3, position: "relative", minHeight: "100vh" }}>
-      {/* Improved Account Card */}
-      {account && (
-        <Paper
-          sx={{
-            p: 3,
-            mb: 3,
-            borderRadius: 3,
-            boxShadow: 4,
-            background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
-            position: "relative",
-            overflow: "hidden",
-            transition: "transform 0.2s, box-shadow 0.2s",
-            "&:hover": { transform: "translateY(-4px)", boxShadow: 6 },
-          }}
-        >
-          {/* Floating accent circle */}
-          <Box
-            sx={{
-              position: "absolute",
-              top: -20,
-              right: -20,
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              bgcolor: "rgba(255,255,255,0.2)",
-            }}
-          />
+      <Typography variant="h5" mb={2}>Transactions</Typography>
 
-          <Stack direction="row" alignItems="center" spacing={2}>
-            {getAccountIcon(account.type)}
-            <Box>
-              <Typography variant="h5" fontWeight="bold">
-                {account.name}
-              </Typography>
-              <Typography variant="subtitle2" color="text.secondary">
-                Type: {account.type}
-              </Typography>
-            </Box>
-          </Stack>
-
-          <Typography
-            variant="h4"
-            fontWeight="bold"
-            color={account.balance >= 0 ? "success.main" : "error.main"}
-            sx={{ mt: 2 }}
-          >
-            ₹ {Number(account.balance || 0).toLocaleString()}
-          </Typography>
-
-        </Paper>
-      )}
-
-      {/* Filter Collapse Toggle for Mobile */}
+      {/* Filter Toggle for Mobile */}
       <Button
         variant="outlined"
         sx={{ mb: 1, display: { xs: "block", sm: "none" } }}
@@ -177,14 +100,38 @@ const getAccountIcon = (type) => {
       {/* Filters */}
       <Collapse in={showFilters || window.innerWidth >= 600}>
         <Paper sx={{ p: 2, mb: 2 }}>
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Search Transactions
-          </Typography>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            flexWrap="wrap"
-          >
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>Search Transactions</Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flexWrap="wrap">
+            <TextField
+              select
+              label="Account Type"
+              size="small"
+              value={selectedTypes}
+              onChange={(e) => setSelectedTypes(e.target.value ? [e.target.value] : [])}
+              sx={{ flex: 1, minWidth: 120 }}
+              InputLabelProps={{ shrink: true }}
+            >
+              <MenuItem value="">All</MenuItem>
+              {accountTypes.map((t) => (
+                <MenuItem key={t} value={t}>{t}</MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              label="Account Name"
+              size="small"
+              value={selectedAccounts}
+              onChange={(e) => setSelectedAccounts(e.target.value ? [e.target.value] : [])}
+              sx={{ flex: 1, minWidth: 120 }}
+              InputLabelProps={{ shrink: true }}
+            >
+              <MenuItem value="">All</MenuItem>
+              {accounts.map((a) => (
+                <MenuItem key={a.id} value={a.name}>{a.name}</MenuItem>
+              ))}
+            </TextField>
+
             <TextField
               label="From Date"
               type="date"
@@ -203,6 +150,8 @@ const getAccountIcon = (type) => {
               InputLabelProps={{ shrink: true }}
               sx={{ flex: 1, minWidth: 120 }}
             />
+
+            {/* Month & Year Dropdowns */}
             <TextField
               select
               label="Month"
@@ -210,16 +159,16 @@ const getAccountIcon = (type) => {
               value={month}
               onChange={(e) => setMonth(e.target.value)}
               sx={{ flex: 1, minWidth: 120 }}
+              InputLabelProps={{ shrink: true }}
             >
               <MenuItem value="">All</MenuItem>
               {months.map((m) => (
                 <MenuItem key={m} value={m}>
-                  {new Date(0, m - 1).toLocaleString("default", {
-                    month: "long",
-                  })}
+                  {new Date(0, m - 1).toLocaleString("default", { month: "long" })}
                 </MenuItem>
               ))}
             </TextField>
+
             <TextField
               select
               label="Year"
@@ -227,12 +176,11 @@ const getAccountIcon = (type) => {
               value={year}
               onChange={(e) => setYear(e.target.value)}
               sx={{ flex: 1, minWidth: 120 }}
+              InputLabelProps={{ shrink: true }}
             >
               <MenuItem value="">All</MenuItem>
               {years.map((y) => (
-                <MenuItem key={y} value={y}>
-                  {y}
-                </MenuItem>
+                <MenuItem key={y} value={y}>{y}</MenuItem>
               ))}
             </TextField>
           </Stack>
@@ -241,7 +189,7 @@ const getAccountIcon = (type) => {
 
       {/* Transaction Cards */}
       {filteredTransactions.length === 0 ? (
-        <Typography>No transactions found for this account.</Typography>
+        <Typography>No transactions found.</Typography>
       ) : (
         <Box
           sx={{
@@ -256,30 +204,27 @@ const getAccountIcon = (type) => {
               sx={{
                 p: 2,
                 borderLeft: `5px solid ${t.type === "credit" ? "green" : "red"}`,
-                boxShadow: 2,
                 borderRadius: 2,
+                boxShadow: 2,
               }}
             >
               <Typography variant="subtitle1" fontWeight="bold">
-                ₹{t.amount} ({t.type})
+                ₹{t.amount} ({t.type}) — {t.accountName || "Unknown"}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {t.createdAt?.toDate().toLocaleString()}
               </Typography>
               {t.note && (
-                <Typography
-                  variant="body2"
-                  sx={{ fontStyle: "italic", mt: 0.5 }}
-                >
+                <Typography variant="body2" sx={{ fontStyle: "italic", mt: 0.5 }}>
                   📝 {t.note}
                 </Typography>
               )}
 
-              {/* Edit Button */}
               <Button
                 variant="outlined"
                 size="small"
                 sx={{ mt: 1 }}
+                startIcon={<Edit />}
                 onClick={() => navigate(`/dashboard/transactions/edit/${t.id}`)}
               >
                 Edit
@@ -289,17 +234,12 @@ const getAccountIcon = (type) => {
         </Box>
       )}
 
-      {/* Floating Action Button */}
+      {/* Floating Add Button */}
       <Fab
         color="primary"
         aria-label="add"
-        onClick={handleAddTransaction}
-        sx={{
-          position: "fixed",
-          bottom: 70,
-          right: 24,
-          boxShadow: "0 6px 10px rgba(0,0,0,0.3)",
-        }}
+        onClick={() => navigate("/dashboard/transactions/add")}
+        sx={{ position: "fixed", bottom: 70, right: 24 }}
       >
         <AddIcon />
       </Fab>
