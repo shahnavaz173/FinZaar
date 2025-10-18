@@ -1,6 +1,8 @@
 // Firestore-based service for accounts (collection: users/{uid}/accounts)
 import {
   collection,
+  doc,
+  getDoc,
   addDoc,
   query,
   orderBy,
@@ -81,5 +83,27 @@ export async function createDefaultAccounts(userId) {
 
   for (const account of defaultAccounts) {
     await addAccount(userId, account);
+  }
+}
+
+
+/**
+ * Fetch a single account document by id.
+ * Returns { id, ...data } or null if not found.
+ *
+ * @param {string} userId - UID of the user (Firestore path: users/{userId}/accounts/{accountId})
+ * @param {string} accountId - ID of the account doc
+ * @returns {Promise<Object|null>}
+ */
+export async function getAccountById(userId, accountId) {
+  if (!userId || !accountId) return null;
+  try {
+    const ref = doc(db, "users", userId, "accounts", accountId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    return { id: snap.id, ...snap.data() };
+  } catch (err) {
+    console.error("getAccountById error:", err);
+    return null;
   }
 }
