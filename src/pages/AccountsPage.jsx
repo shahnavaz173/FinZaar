@@ -11,11 +11,11 @@ import {
   FormControl,
   Stack,
   Collapse,
-  IconButton,
   Paper,
   Fab,
+  Button,
 } from "@mui/material";
-import { ExpandMore, ExpandLess, Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon } from "@mui/icons-material";
 import { useAuth } from "../context/AuthContext";
 import { listenToAccounts } from "../services/accountService";
 import { useNavigate } from "react-router-dom";
@@ -51,10 +51,15 @@ export default function AccountsPage() {
       <Paper sx={{ p: 2, mb: 2 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Typography variant="subtitle1">Filters</Typography>
-          <IconButton onClick={() => setShowFilters((prev) => !prev)}>
-            {showFilters ? <ExpandLess /> : <ExpandMore />}
-          </IconButton>
+          <Button
+            size="small"
+            variant="text"
+            onClick={() => setShowFilters((prev) => !prev)}
+          >
+            {showFilters ? "Hide" : "Show"}
+          </Button>
         </Stack>
+
         <Collapse in={showFilters}>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mt={2}>
             <TextField
