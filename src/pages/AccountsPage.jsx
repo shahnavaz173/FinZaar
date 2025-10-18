@@ -110,7 +110,7 @@ export default function AccountsPage() {
       <Fab
         color="primary"
         aria-label="add"
-        sx={{ position: "fixed", bottom: 24, right: 24 }}
+        sx={{ position: "fixed", bottom: 70, right: 24 }}
         onClick={() => navigate("/dashboard/accounts/add")}
       >
         <AddIcon />

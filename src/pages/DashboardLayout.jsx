@@ -17,12 +17,14 @@ import {
   ListItemText,
   Divider,
   Typography,
+  Fab,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import LogoutIcon from "@mui/icons-material/Logout";
+import AddIcon from "@mui/icons-material/Add";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -64,8 +66,11 @@ export default function DashboardLayout() {
     if (!isDesktop) setDrawerOpen(false); // close drawer on mobile
   };
 
+  // Bottom navigation height (approximate)
+  const bottomNavHeight = 56;
+
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", flexDirection: "column" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {/* AppBar */}
       <AppBar position="fixed">
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
@@ -84,12 +89,12 @@ export default function DashboardLayout() {
               src={finzaarLogoWhite}
               alt="FundFlare"
               sx={{
-                height: 48, // larger and responsive
+                height: 48,
                 width: "auto",
                 ml: !isDesktop ? 1 : 2,
               }}
             />
-            <Typography variant="h5">FundFlare</Typography>
+            <Typography variant="h5" sx={{ ml: 1 }}>FundFlare</Typography>
           </Box>
 
           {user && <Avatar src={user.photoURL} alt={user.displayName} />}
@@ -116,7 +121,6 @@ export default function DashboardLayout() {
             alt="logo"
             sx={{ width: "80%", maxWidth: 140 }}
           />
-          
         </Box>
         <Divider />
         <List>
@@ -147,19 +151,32 @@ export default function DashboardLayout() {
           mt: "64px",
           ml: isDesktop ? "260px" : 0,
           p: 2,
-          minHeight: "calc(100vh - 64px - 56px)", // AppBar + BottomNav
+          // Space for bottom nav on mobile
+          mb: !isDesktop ? `${bottomNavHeight }px` : 0,
+          minHeight: `calc(100vh - 64px - ${bottomNavHeight}px)`,
         }}
       >
         <Outlet />
       </Box>
 
+
       {/* Bottom nav only on mobile */}
       {!isDesktop && (
         <Paper
-          sx={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: theme.zIndex.appBar }}
+          sx={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: theme.zIndex.appBar,
+          }}
           elevation={3}
         >
-          <BottomNavigation showLabels value={bottomValue} onChange={(e, newValue) => handleNavClick(navItems[newValue].path)}>
+          <BottomNavigation
+            showLabels
+            value={bottomValue}
+            onChange={(e, newValue) => handleNavClick(navItems[newValue].path)}
+          >
             {navItems.map((item) => (
               <BottomNavigationAction key={item.label} label={item.label} icon={item.icon} />
             ))}
