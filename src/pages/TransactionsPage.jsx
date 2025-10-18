@@ -110,6 +110,8 @@ export default function TransactionsPage() {
           </Button>
         </Box>
         <Collapse in={showFilters}>
+                <Paper sx={{ p: 2, mb: 2 }}>
+        
           <Stack spacing={2} mt={2}>
             <Autocomplete
               multiple
@@ -132,27 +134,24 @@ export default function TransactionsPage() {
               renderInput={(params) => <TextField {...params} label="Account Name" InputLabelProps={{ shrink: true }} />}
             />
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
                 <TextField
                   label="From Date"
                   type="date"
                   InputLabelProps={{ shrink: true }}
+                  sx={{ flex: 1, minWidth: 120 }}
                   value={dateRange.from}
                   onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
                   fullWidth
                 />
-              </Grid>
-              <Grid item xs={12} sm={4}>
                 <TextField
                   label="To Date"
                   type="date"
                   InputLabelProps={{ shrink: true }}
+                  sx={{ flex: 1, minWidth: 120 }}
                   value={dateRange.to}
                   onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
                   fullWidth
                 />
-              </Grid>
-              <Grid item xs={6} sm={2}>
                 <TextField
                   select
                   label="Month"
@@ -168,8 +167,6 @@ export default function TransactionsPage() {
                     </MenuItem>
                   ))}
                 </TextField>
-              </Grid>
-              <Grid item xs={6} sm={2}>
                 <TextField
                   select
                   label="Year"
@@ -183,9 +180,9 @@ export default function TransactionsPage() {
                     <MenuItem key={y} value={y}>{y}</MenuItem>
                   ))}
                 </TextField>
-              </Grid>
             </Grid>
           </Stack>
+          </Paper>
         </Collapse>
       </Paper>
 
