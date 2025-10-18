@@ -9,6 +9,7 @@ import TransactionsPage from "./pages/TransactionsPage";
 import AccountDetailPage from "./pages/AccountDetailPage";
 import EditTransactionPage from "./pages/EditTransactionPage";
 import AddAccountPage from "./pages/AddAccountPage";
+import AddTransactionPage from "./pages/AddTransactionPage";
 
 export default function App() {
   const { user } = useAuth();
@@ -31,6 +32,9 @@ export default function App() {
         <Route path="accounts/:id" element={<AccountDetailPage />} />
         <Route path="accounts/add" element={<AddAccountPage />} />
         <Route path="transactions" element={<TransactionsPage />} />
+        <Route path="transactions/add" element={<AddTransactionPage />} />
+        <Route path="transactions/add/:preselectedAccountId" element={<AddTransactionPage />} />
+
         <Route path="transactions/edit/:txnId" element={<EditTransactionPage />} />
 
       </Route>

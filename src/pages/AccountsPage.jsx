@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   TextField,
-  Button,
   Card,
   CardContent,
   MenuItem,
@@ -14,8 +13,9 @@ import {
   Collapse,
   IconButton,
   Paper,
+  Fab,
 } from "@mui/material";
-import { ExpandMore, ExpandLess } from "@mui/icons-material";
+import { ExpandMore, ExpandLess, Add as AddIcon } from "@mui/icons-material";
 import { useAuth } from "../context/AuthContext";
 import { listenToAccounts } from "../services/accountService";
 import { useNavigate } from "react-router-dom";
@@ -42,12 +42,9 @@ export default function AccountsPage() {
   });
 
   return (
-    <Box sx={{ pb: { xs: 8, sm: 2 }, px: { xs: 2, sm: 4 } }}>
+    <Box sx={{ pb: { xs: 10, sm: 2 }, px: { xs: 2, sm: 4 }, position: "relative" }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5">Accounts</Typography>
-        <Button variant="contained" onClick={() => navigate("/dashboard/accounts/add")}>
-          Add Account
-        </Button>
       </Stack>
 
       {/* Filters */}
@@ -103,6 +100,16 @@ export default function AccountsPage() {
           </Card>
         ))}
       </Stack>
+
+      {/* Floating Add Button */}
+      <Fab
+        color="primary"
+        aria-label="add"
+        sx={{ position: "fixed", bottom: 24, right: 24 }}
+        onClick={() => navigate("/dashboard/accounts/add")}
+      >
+        <AddIcon />
+      </Fab>
     </Box>
   );
 }

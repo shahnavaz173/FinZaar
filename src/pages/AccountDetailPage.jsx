@@ -89,9 +89,10 @@ export default function AccountDetailPage() {
     new Set(transactions.map((t) => t.createdAt?.toDate().getFullYear()))
   ).sort((a, b) => b - a);
 
-  const handleAddTransaction = () => {
-    navigate(`/accounts/${id}/add-transaction`);
-  };
+const handleAddTransaction = () => {
+  navigate(`/dashboard/transactions/add/${id}`, { state: { preselectedAccountId: id } });
+};
+
 
 // Choose icon based on account type
 const getAccountIcon = (type) => {
